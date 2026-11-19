@@ -56,13 +56,24 @@ must not be described as individual GPS observations.
 Repeat Dedza/MTANTHO with verified source memberships, repeat sync, later-page
 failure, rollback, stale concurrent jobs, expiry, replacement, withdrawal,
 restoration, point-only data, unauthorized direct IDs/counts and scope revocation.
-Validate disabled startup and the boundary-only map in a separately pinned upstream
-openIMIS assembly. Record package commits, contract fixtures, limits, timings and
-rollback evidence. A prior successful CoreMIS pilot is not evidence of that second
-host or of completed village coverage.
+Validate disabled startup and the boundary-only map in the selected nlgfc2024
+assemblies first. Record package commits, contract fixtures, limits, timings and
+rollback evidence. A separately pinned upstream openIMIS assembly can be added
+later; compatibility with it is not part of the current acceptance claim.
+A successful boundary pilot does not establish completed village coverage.
 
-## Outstanding host input
+## Confirmed host targets
 
-Provide the exact upstream openIMIS backend/frontend assembly commits intended
-for acceptance before the second-host compatibility phase. The local package
-baseline currently follows CoreMIS's Django 4.2, Graphene 2 and React 17 host.
+On 19 November 2026 the project owner selected the available nlgfc2024 assemblies
+for the current compatibility checks:
+
+| Host | Branch | Integration commit |
+| --- | --- | --- |
+| `nlgfc2024/openimis-be_py` | `feature/geospatial-dashboard` | `6bea78cc1e84c8a354e63671b8400369bbaf10f2` |
+| `nlgfc2024/openimis-fe_js` | `feature/geospatial-dashboard` | `dbba83c0ebea9f128372ef0c491c67b4d4589d73` |
+
+These local checkouts also retain the pre-existing deployment overrides recorded
+by manifest checksums in BASELINE.md. Runtime baseline: Django 4.2, Graphene 2 and
+React 17. The two assembly repositories form the current CoreMIS host profile;
+they are not evidence of two independently validated host profiles. No upstream
+openIMIS release or commit has been selected or certified by this decision.
