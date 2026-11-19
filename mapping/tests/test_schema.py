@@ -54,6 +54,12 @@ class MappingSchemaTests(SimpleTestCase):
             self.assertTrue(self.query("{mappingReferences("+args+"){totalCount}}").errors)
         self.repo.list_references.assert_not_called()
 
+    def test_existing_district_picker_uuid_is_forwarded(self):
+        self.repo.list_references.return_value = ([], 0)
+        result = self.query('{mappingReferences(districtUuid:"reviewed-local-district"){totalCount}}')
+        self.assertFalse(result.errors)
+        self.repo.list_references.assert_called_once_with(self.user, {"district_uuid": "reviewed-local-district"}, 0, 100)
+
     def test_direct_id_scope_cannot_be_bypassed_for_geometry(self):
         self.repo.get_reference.return_value = None
         result = self.query('{mappingGeometryAccess(referenceId:"3523"){status}}')

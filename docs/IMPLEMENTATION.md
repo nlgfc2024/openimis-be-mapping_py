@@ -42,7 +42,24 @@ changes, revoked scope, concurrent PostgreSQL workers and legacy source/staging.
 UI cutover, synchronization controls and programme overlays remain subsequent
 chunks. See [synchronization contract](SYNCHRONIZATION.md).
 
-## Chunk 4: production map and CoreMIS bridge
+## Chunk 4a: frontend synchronization and CoreMIS bridge
+
+Implemented reuse of the published CoreMIS district picker, passing its UUID to
+scoped reference queries and synchronization. Source/district correlation stays
+in the backend bridge. The synchronization panel uses core mutation tracking,
+active-job recovery, progress and cancellation; no second job UI engine is added.
+
+The legacy location URL/reference delegates to the published mapping component
+when enabled. The project boundary tab does the same with view and project
+capabilities, preserving its existing micro-catchment link. A management command
+previews/applies configuration and Dashboards menu replacement together, with a
+reverse switch to the legacy frontend. Role grants are not changed automatically.
+
+The local Dedza bridge is activated after package, host component, PostgreSQL and
+full assembly checks. Full browser acceptance and a live synchronization through
+the new UI remain pending; see VALIDATION_CHUNK_4A.md.
+
+## Chunk 4b: remaining production map work
 
 Complete independent point handling, hierarchy choices, freshness indicators and
 an authenticated geometry streaming contract where supported. Select a mapping

@@ -9,8 +9,8 @@ core jobs, async mutations, progress and permission discovery; MSR ETL staging a
 recovery; and the existing location reference/membership writer. It adds one
 source/district coordination table, not a second geographic store.
 
-The new module remains disabled by default. The current pilot route and project
-component continue until the frontend bridge chunk. Streaming, programme/GPS
+The new module remains disabled by default. The optional frontend bridge delegates the pilot route and project boundary tab
+to the new shared component when enabled. Streaming, programme/GPS
 overlays and complete lifecycle acceptance remain pending.
 
 Read APIs: `mappingReferences`, `mappingReference`, `mappingVerifiedVillages`,
@@ -48,8 +48,11 @@ existing Roles Management feature. No roles are granted automatically.
 | View mapping | 954001 |
 | Synchronize | 954002 |
 | Manage mapping / review other operators' jobs | 954003 |
-| Project overlays, reserved for subsequent work | 954004 |
+| Project boundary tab; programme overlays pending | 954004 |
 | Beneficiary GPS, reserved for subsequent work | 954005 |
+
+The project boundary tab uses its additional capability together with existing
+project-page access and scoped mapping reads; no programme/GPS feed is added.
 
 These IDs were checked against the current nlgfc2024 catalogue and stored
 RoleRight values before allocation. Other host profiles must check their own
@@ -118,3 +121,20 @@ A village belongs to one catchment; no polygon-based membership is inferred.
 
 See [baseline](docs/BASELINE.md), [delivery chunks](docs/IMPLEMENTATION.md) and
 [synchronization API](docs/SYNCHRONIZATION.md).
+
+## CoreMIS frontend bridge activation
+
+Preview/apply one district's bridge settings with the existing configuration model:
+
+```bash
+python manage.py configure_coremis_mapping --source-instance msr-malawi --district-id 13
+python manage.py configure_coremis_mapping --source-instance msr-malawi --district-id 13 --apply
+python manage.py configure_coremis_mapping --disable --apply
+```
+
+The command reuses the MSR ETL source alias, configures explicit source/district
+scope, aligns safe frontend capability IDs, replaces the legacy entry in the
+existing Dashboards allowlist and preserves other entries. It grants no roles.
+It requires active reviewed CoreMIS links for the selected districts. The default
+is preview only. Restart backend/workers and reload the browser session after
+applying. Ordinary role grants remain in core Roles Management.

@@ -21,6 +21,14 @@ class CoremisRepository:
         if filters.get("micro_catchment_uuid"):
             qs = qs.filter(micro_catchment__uuid=filters["micro_catchment_uuid"],
                            micro_catchment__validity_to__isnull=True)
+        if filters.get("district_uuid"):
+            # Reuse the UUID returned by the host district picker. Correlate by
+            # source as well as MSR ID, never by a coincidentally equal code.
+            districts = self.references(user).filter(
+                msr_type="districts", location__uuid=filters["district_uuid"],
+                location__validity_to__isnull=True,
+                source_instance=OuterRef("source_instance"), msr_id=OuterRef("district_msr_id"))
+            qs = qs.annotate(_picked_district=Exists(districts)).filter(_picked_district=True)
         if filters.get("parent_reference_id"):
             parent = self.get_reference(user, filters["parent_reference_id"])
             if parent is None:

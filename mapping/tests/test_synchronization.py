@@ -131,6 +131,22 @@ class SynchronizationTests(TestCase):
             schedule.assert_called_once_with("mapping.jobs.run_sync", module="mapping", job_type="mapping_locations_import",
                 user=actor, params={"source_instance": "fixture", "district_id": 13}, client_mutation_id="request-id")
 
+    def test_picker_filter_correlates_source_and_district(self):
+        from location.models import Location, MsrLocationReference
+        from mapping.repositories.coremis import CoremisRepository
+        local = Location.objects.filter(type="R", validity_to__isnull=True).first()
+        self.assertIsNotNone(local)
+        for source, linked in (("fixture-a", True), ("fixture-b", False)):
+            MsrLocationReference.objects.create(source_instance=source, msr_type="districts", msr_id=13,
+                district_msr_id=13, code="213", name="Fixture", location=local if linked else None)
+            MsrLocationReference.objects.create(source_instance=source, msr_type="catchments", msr_id=265,
+                district_msr_id=13, code="213009", name="Fixture catchment")
+        repository = CoremisRepository()
+        with patch.object(repository, "references", return_value=MsrLocationReference.objects.all()):
+            rows, total = repository.list_references(None, {"district_uuid": str(local.uuid)}, 0, 100)
+        self.assertEqual(total, 2)
+        self.assertEqual({row.source_instance for row in rows}, {"fixture-a"})
+
 
 class CapabilityTests(TestCase):
     def test_view_permission_does_not_grant_synchronization(self):

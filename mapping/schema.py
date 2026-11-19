@@ -81,6 +81,7 @@ class Query(graphene.ObjectType):
     mapping_references = graphene.Field(
         MappingReferencePage, source_instance=graphene.String(), msr_type=graphene.String(),
         district_msr_id=graphene.String(), micro_catchment_uuid=graphene.String(),
+        district_uuid=graphene.String(),
         parent_reference_id=graphene.ID(), is_micro=graphene.Boolean(),
         offset=graphene.Int(default_value=0), limit=graphene.Int(default_value=100),
     )
