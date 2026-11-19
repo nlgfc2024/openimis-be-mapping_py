@@ -78,11 +78,4 @@ MicroCatchment links remain authoritative. Old `msrGeo*` queries and the current
 MSR ETL writer remain available. New mapping sync mutations are deliberately not
 exposed until district write ordering, recovery and separate rights are complete.
 
-## Confirmed decisions
-
-- GitHub repositories are public under `nlgfc2024`.
-- A village belongs to one micro-catchment. Retain the existing constraint.
-- Administrative owner TA and verified village coverage remain separate.
-- No polygon-based membership inference and no duplicate source writer.
-
 See [baseline](docs/BASELINE.md) and [delivery chunks](docs/IMPLEMENTATION.md).
