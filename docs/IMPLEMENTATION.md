@@ -1,0 +1,68 @@
+# Mapping module delivery chunks
+
+Specification inputs: CoreMIS Mapping Module Development Specification (6-page
+PDF) and CoreMIS/openIMIS Mapping Module Implementation Guide supplied by the
+project owner. Treat their package/API/acceptance definitions as the target.
+
+## Chunk 1: baseline and repository boundary
+
+Captured pilot commits in existing repositories. Created independent backend and
+frontend packages on `feature/geospatial-dashboard`. Public visibility and the
+one-catchment-per-village rule were confirmed by the project owner on 19 November
+2026. Existing source manifests and payroll/project local links are preserved.
+
+## Chunk 2: safe registration and read extraction
+
+Implemented `MappingConfig`, module schema/URL registration, an optional CoreMIS
+repository adapter and four mapping-specific read operations. No data migration
+is needed for this adapter. Extracted the current boundary map into the new npm
+package, publishing `MappingModule` and `mapping.MappingMap`, with configurable
+host menu contribution and fail-closed frontend rights.
+
+Source registration alone does not activate the new menu or change the existing
+project tab. Activation requires separately allocated host capabilities and
+appropriate module configuration. Existing routes continue to function.
+
+## Chunk 3: provider and synchronization extraction (next)
+
+Extract independent provider/configuration interfaces from the existing MSR
+transport; preserve deployed v3 list/detail and v2 membership contracts. Use
+sanitized fixtures covering field presence, false/null, pagination and lifecycle.
+Implement source/config fingerprints, source/district serialization and accepted
+snapshot ordering before exposing `mappingStartSync` / `mappingSyncRun`. Delegate
+legacy entry points to the same writer; never activate two writers for one source.
+Separate mapping view, sync, management, project and GPS capabilities through the
+host registry. No arbitrary rights IDs are reserved in this first chunk.
+
+## Chunk 4: production map and CoreMIS bridge
+
+Complete independent point handling, hierarchy choices, freshness indicators and
+an authenticated geometry streaming contract where supported. Select a mapping
+library compatible with the pinned hosts before adding a basemap. The extracted
+pilot currently uses the existing bounded SVG polygon overlay without a basemap.
+Switch the project tab and old location contribution to the published mapping
+component after the new API is enabled and authorized; retain legacy URL aliases.
+Add scoped project overlays and explicit link review audit workflows.
+
+## Chunk 5: programme/GPS overlays
+
+Identify existing MSR/CoreMIS household and beneficiary coordinate fields, their
+record links, quality and provenance. No GPS field is guessed. Implement separately
+permissioned feeds and documented distinct counting units. Household locations
+must not be described as individual GPS observations.
+
+## Chunk 6: acceptance and release
+
+Repeat Dedza/MTANTHO with verified source memberships, repeat sync, later-page
+failure, rollback, stale concurrent jobs, expiry, replacement, withdrawal,
+restoration, point-only data, unauthorized direct IDs/counts and scope revocation.
+Validate disabled startup and the boundary-only map in a separately pinned upstream
+openIMIS assembly. Record package commits, contract fixtures, limits, timings and
+rollback evidence. A prior successful CoreMIS pilot is not evidence of that second
+host or of completed village coverage.
+
+## Outstanding host input
+
+Provide the exact upstream openIMIS backend/frontend assembly commits intended
+for acceptance before the second-host compatibility phase. The local package
+baseline currently follows CoreMIS's Django 4.2, Graphene 2 and React 17 host.

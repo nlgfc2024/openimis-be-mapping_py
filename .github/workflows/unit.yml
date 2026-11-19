@@ -1,0 +1,13 @@
+name: Mapping backend unit checks
+on: [push, pull_request]
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'Django>=4.2,<5' 'graphene-django>=2,<3' 'requests>=2.28,<3'
+      - run: python -m pip install --no-deps -e .
+      - run: python -m mapping.tests.run_unit
