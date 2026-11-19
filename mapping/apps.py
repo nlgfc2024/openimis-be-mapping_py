@@ -1,18 +1,16 @@
 from copy import deepcopy
 from django.apps import AppConfig
+from mapping.rights import CAPABILITIES
 
 DEFAULT_CONFIG = {
     "enabled": False,
     "repository": "none",
-    "view_perms": [],
-    "sync_perms": [],
-    "manage_perms": [],
-    "project_perms": [],
-    "gps_perms": [],
+    **{key: [str(value)] for key, value in CAPABILITIES.items()},
     "permitted_district_ids": [],
     "permitted_source_instances": [],
     "max_page_size": 100,
     "project_overlay_enabled": False,
+    "sources": {},
 }
 
 
@@ -30,6 +28,7 @@ class MappingConfig(AppConfig):
     permitted_source_instances = []
     max_page_size = 100
     project_overlay_enabled = False
+    sources = {}
 
     @classmethod
     def load_config(cls, config):

@@ -7,9 +7,8 @@ from mapping.repositories import get_repository
 
 
 def authorize(user):
-    if (not MappingConfig.enabled or not MappingConfig.view_perms or user.is_anonymous
-            or not user.has_perms(MappingConfig.view_perms)):
-        raise PermissionDenied("MAPPING_ACCESS_DENIED")
+    from mapping.access import require_capability
+    require_capability(user, "view_perms")
 
 
 def page_limits(offset, limit):
@@ -60,7 +59,25 @@ class MappingGeometry(graphene.ObjectType):
     geojson = GenericScalar()
 
 
+class MappingSyncRun(graphene.ObjectType):
+    id = graphene.ID()
+    client_mutation_id = graphene.String()
+    status = graphene.String()
+    total = graphene.Int()
+    processed = graphene.Int()
+    metrics = GenericScalar()
+    error = graphene.String()
+    created_at = graphene.DateTime()
+    started_at = graphene.DateTime()
+    finished_at = graphene.DateTime()
+
+
 class Query(graphene.ObjectType):
+    mapping_sync_run = graphene.Field(MappingSyncRun, job_uuid=graphene.String(), client_mutation_id=graphene.String())
+
+    def resolve_mapping_sync_run(self, info, **kwargs):
+        from mapping.jobs import visible_sync_job
+        return visible_sync_job(info.context.user, **kwargs)
     mapping_references = graphene.Field(
         MappingReferencePage, source_instance=graphene.String(), msr_type=graphene.String(),
         district_msr_id=graphene.String(), micro_catchment_uuid=graphene.String(),
@@ -108,3 +125,13 @@ def visible_reference(repository, user, reference_id):
     if reference is None:
         raise PermissionDenied("MAPPING_REFERENCE_UNAVAILABLE")
     return reference
+
+
+# Keep portable read-schema tests free of host-specific mutation imports.
+def __getattr__(name):
+    if name == "Mutation":
+        from mapping.gql_mutations import MappingStartSyncMutation
+        mutation = type("Mutation", (graphene.ObjectType,), {"mapping_start_sync": MappingStartSyncMutation.Field()})
+        globals()["Mutation"] = mutation
+        return mutation
+    raise AttributeError(name)

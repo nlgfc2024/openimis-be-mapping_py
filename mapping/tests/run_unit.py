@@ -12,4 +12,7 @@ if not settings.configured:
 django.setup()
 
 if __name__ == "__main__":
-    unittest.main(module="mapping.tests.test_schema", verbosity=2)
+    suite = unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromName(name) for name in
+        ("mapping.tests.test_schema", "mapping.tests.test_provider"))
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    raise SystemExit(not result.wasSuccessful())

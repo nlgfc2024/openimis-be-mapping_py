@@ -23,16 +23,24 @@ Source registration alone does not activate the new menu or change the existing
 project tab. Activation requires separately allocated host capabilities and
 appropriate module configuration. Existing routes continue to function.
 
-## Chunk 3: provider and synchronization extraction (next)
+## Chunk 3: provider and synchronization extraction
 
-Extract independent provider/configuration interfaces from the existing MSR
-transport; preserve deployed v3 list/detail and v2 membership contracts. Use
-sanitized fixtures covering field presence, false/null, pagination and lifecycle.
-Implement source/config fingerprints, source/district serialization and accepted
-snapshot ordering before exposing `mappingStartSync` / `mappingSyncRun`. Delegate
-legacy entry points to the same writer; never activate two writers for one source.
-Separate mapping view, sync, management, project and GPS capabilities through the
-host registry. No arbitrary rights IDs are reserved in this first chunk.
+Implemented the independent MSR provider and district collector. The legacy MSR
+source delegates to these components. Both entry points reuse staging/recovery
+and one location writer. A keyed configuration receipt is captured before
+network access and stored in the existing staging payload. The source/district
+state row serializes writes and rejects older staging sequences.
+
+Added `mappingStartSync` / `mappingSyncRun`, reusing core async mutation tracking,
+scheduling after commit and progress reporting. The mutation accepts the UUID
+returned by the published location district picker. View, sync, management,
+project and GPS capabilities are independently discovered by the core registry;
+no roles are granted automatically. The migration adds coordination state only.
+
+Tests cover provider pagination/failures, rollback, stale ordering, configuration
+changes, revoked scope, concurrent PostgreSQL workers and legacy source/staging.
+UI cutover, synchronization controls and programme overlays remain subsequent
+chunks. See [synchronization contract](SYNCHRONIZATION.md).
 
 ## Chunk 4: production map and CoreMIS bridge
 
