@@ -52,3 +52,37 @@ started from the new UI remains a pilot acceptance step. Existing MSR-verified
 MTANTHO coverage was empty; manually configured CoreMIS GVHs do not establish
 verified village coverage. Basemap, point-only rendering, programme/GPS overlays,
 streaming delivery and complete lifecycle acceptance remain pending.
+
+## Pilot acceptance update — 20 November 2026
+
+The initial empty membership response was resolved on the MSR side. The supplied
+updated API response was checked against `MTANTHO-Villages.xlsx`: all 66 distinct
+village IDs matched exactly, all carried catchment ID 265, and no further page
+was available. No village was missing or extra relative to the SQL export.
+
+| GVH | MSR GVH ID | Village records |
+| --- | --- | --- |
+| BAYAMTEDZA | 6710 | 6 |
+| CHIMKOMBERO | 6711 | 23 |
+| MUYOWE | 6724 | 15 |
+| NGOONONDA | 6728 | 14 |
+| SIMUKA | 6732 | 8 |
+| Total | | 66 |
+
+The project owner confirmed successful synchronization from the dashboard,
+storage of all 66 verified memberships in CoreMIS, the preserved MTANTHO match,
+the same geometry in the project's Boundary map tab, and repeat synchronization
+without duplicate references. Screenshots supplied by the owner show completed
+progress for 3,560 of 3,560 locations and the district/catchment display.
+
+Evidence distinction: the API-to-spreadsheet ID comparison was independently
+checked from supplied files. The final CoreMIS membership count, repeat-run
+behavior and project display are owner-confirmed live acceptance results; this
+update does not claim an additional automated browser or database verification.
+
+The first district/matched micro-catchment synchronization/display milestone and
+the pilot's API-to-CoreMIS membership reconciliation are therefore confirmed.
+Repeated village names under distinct MSR IDs remain a source data-quality review;
+membership records must not be merged by name. This does not establish surveyed
+boundary accuracy or complete beneficiary/GPS coverage. Point layers, freshness
+indicators, lifecycle acceptance, streaming and programme/GPS feeds remain pending.

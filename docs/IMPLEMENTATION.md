@@ -56,8 +56,10 @@ previews/applies configuration and Dashboards menu replacement together, with a
 reverse switch to the legacy frontend. Role grants are not changed automatically.
 
 The local Dedza bridge is activated after package, host component, PostgreSQL and
-full assembly checks. Full browser acceptance and a live synchronization through
-the new UI remain pending; see VALIDATION_CHUNK_4A.md.
+full assembly checks. The project owner subsequently confirmed live dashboard
+synchronization, repeat-run stability, the project map and all 66 verified MTANTHO
+memberships. The supplied API IDs also match the SQL export exactly. See the
+20 November acceptance update in VALIDATION_CHUNK_4A.md for evidence and limits.
 
 ## Chunk 4b: remaining production map work
 
