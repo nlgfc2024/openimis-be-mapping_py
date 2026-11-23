@@ -1,3 +1,5 @@
+> Superseded: synchronization now belongs to MSR ETL. See [ownership handover](MSR_IMPORT_OWNERSHIP.md). The contract below records the earlier implementation.
+
 # Synchronization contract and rollout
 
 ## Existing features reused

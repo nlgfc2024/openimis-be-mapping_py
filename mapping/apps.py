@@ -6,11 +6,10 @@ DEFAULT_CONFIG = {
     "enabled": False,
     "repository": "none",
     **{key: [str(value)] for key, value in CAPABILITIES.items()},
-    "permitted_district_ids": [],
+    "permitted_district_uuids": [],
     "permitted_source_instances": [],
     "max_page_size": 100,
     "project_overlay_enabled": False,
-    "sources": {},
 }
 
 
@@ -20,15 +19,13 @@ class MappingConfig(AppConfig):
     enabled = False
     repository = "none"
     view_perms = []
-    sync_perms = []
     manage_perms = []
     project_perms = []
     gps_perms = []
-    permitted_district_ids = []
+    permitted_district_uuids = []
     permitted_source_instances = []
     max_page_size = 100
     project_overlay_enabled = False
-    sources = {}
 
     @classmethod
     def load_config(cls, config):

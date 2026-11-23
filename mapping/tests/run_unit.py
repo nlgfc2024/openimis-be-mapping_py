@@ -13,6 +13,6 @@ django.setup()
 
 if __name__ == "__main__":
     suite = unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromName(name) for name in
-        ("mapping.tests.test_schema", "mapping.tests.test_provider"))
+        ("mapping.tests.test_schema", "mapping.tests.test_access"))
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     raise SystemExit(not result.wasSuccessful())

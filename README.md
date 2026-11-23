@@ -1,140 +1,86 @@
-# openIMIS / CoreMIS Mapping backend
+# CoreMIS Mapping backend
 
-Dedicated Django application `mapping`, package `openimis-be-mapping`.
+Mapping displays authorized geographic information already available to CoreMIS.
+It has **no dependency on MSR or `msr_etl`**, owns no API credentials and starts no
+source imports. It can display geography published by MSR ETL, other importers or
+local CoreMIS processes through the same local geographic store.
 
-## Current delivery
+## Responsibilities
 
-The module supplies permission-scoped read APIs and MSR synchronization. It reuses
-core jobs, async mutations, progress and permission discovery; MSR ETL staging and
-recovery; and the existing location reference/membership writer. It adds one
-source/district coordination table, not a second geographic store.
+- `location.GeographicFeature` holds source identity, local district/location or
+  micro-catchment links, coordinates, publication metadata and accepted GeoJSON.
+- `location.GeographicMembership` holds explicitly imported coverage relationships.
+- Mapping reads these records through its repository adapter and applies its view
+  capability, deployment scopes and existing CoreMIS district assignments.
+- Importers retrieve/validate source publications and write accepted local data.
+  MSR-specific authentication, v3/v2 requests, staging, retries and write ordering
+  belong entirely to `msr_etl`.
 
-The new module remains disabled by default. The optional frontend bridge delegates the pilot route and project boundary tab
-to the new shared component when enabled. Streaming, programme/GPS
-overlays and complete lifecycle acceptance remain pending.
+Opening a map or clicking **Refresh map** performs local reads. It does not call
+MSR, renew signed URLs or trigger synchronization. Last accepted geometry remains
+available when an upstream source is offline; a failed import is reported through
+refresh status. Authoritative withdrawal removes geometry; a newer accepted
+publication can restore it.
 
-Read APIs: `mappingReferences`, `mappingReference`, `mappingVerifiedVillages`,
-`mappingGeometryAccess`. Geometry returns bounded validated GeoJSON through the
-existing authenticated backend delivery service.
-Synchronization APIs: `mappingStartSync`, `mappingSyncRun`.
+## Queries
 
-## Local assembly setup
+`mappingAreas` is the source-neutral paginated query. It supports `kind`,
+`sourceInstance`, `districtUuid` and `microCatchmentUuid`. Kinds used by the pilot
+include `district`, `traditional_authority`, `group_village_head`, `village` and
+`micro_catchment`. Other publishers may supply other kinds.
 
-Use the existing nlgfc2024 assembly's pinned dependencies and editable packages:
+`mappingGeometryAccess(referenceId: ...)` reads accepted local GeoJSON. IDs are
+opaque; clients must use IDs returned by the API rather than constructing them.
+The `geo:` namespace distinguishes new publication IDs from historical numeric
+reference IDs, which are resolved through the legacy CoreMIS reference key.
 
-```json
-{"name":"mapping","pip":"-e ../openimis-be-mapping_py"}
-```
+The older `mappingReferences`, `mappingReference` and `mappingVerifiedVillages`
+read operations remain as compatibility interfaces. Their MSR-named fields are
+legacy provenance aliases, not live MSR queries. `mappingStartSync` and
+`mappingSyncRun` are retired: source imports use the existing MSR ETL APIs/UI.
 
-```bash
-python -m pip install --no-deps --no-build-isolation -e ../openimis-be-mapping_py
-python manage.py check
-python manage.py makemigrations mapping --check --dry-run
-python manage.py migrate mapping
-```
+## Configuration
 
-Django commands run from the assembly's manage.py directory. Module startup reads
-configuration; it does not construct a provider, call MSR or synchronize records.
-`mapping.urls` follows the core module URL registration convention.
-
-## Configuration and rights
-
-Backend ModuleConfiguration uses module `mapping`, layer `be`, **non-exposed**.
-The core registry discovers the following capabilities; assign rights through the
-existing Roles Management feature. No roles are granted automatically.
-
-| Capability | Right |
-| --- | --- |
-| View mapping | 954001 |
-| Synchronize | 954002 |
-| Manage mapping / review other operators' jobs | 954003 |
-| Project boundary tab; programme overlays pending | 954004 |
-| Beneficiary GPS, reserved for subsequent work | 954005 |
-
-The project boundary tab uses its additional capability together with existing
-project-page access and scoped mapping reads; no programme/GPS feed is added.
-
-These IDs were checked against the current nlgfc2024 catalogue and stored
-RoleRight values before allocation. Other host profiles must check their own
-catalogues. Allocating rights does not implement or expose the pending overlays.
-
-Controlled activation example, after migration and role assignment:
+ModuleConfiguration: module `mapping`, layer `be`, non-exposed. Disabled by default.
 
 ```json
 {
   "enabled": true,
   "repository": "coremis",
   "view_perms": ["954001"],
-  "sync_perms": ["954002"],
-  "manage_perms": ["954003"],
   "project_perms": ["954004"],
-  "gps_perms": ["954005"],
-  "permitted_district_ids": [13],
-  "permitted_source_instances": ["msr-malawi"],
-  "sources": {
-    "msr-malawi": {"provider": "msr_v3", "enabled": true, "legacy_source_type": "msr_geo_v3"}
-  },
-  "max_page_size": 100,
-  "project_overlay_enabled": false
+  "permitted_district_uuids": ["COREMIS_DISTRICT_UUID"],
+  "permitted_source_instances": ["msr-malawi", "local-survey"],
+  "max_page_size": 100
 }
 ```
 
-The legacy source alias reuses existing backend-held credentials without copying
-them. Independent sources may supply `base_url`, `token_env` (the server environment
-variable name), timeouts and pagination limits instead. Remote MSR addresses
-require HTTPS; HTTP is permitted for localhost, including the pilot on port 8080.
-No credentials or temporary download URLs are stored in snapshot receipts.
-
-Scope reuses CoreMIS district assignments and location permissions. Empty scopes
-permit no districts; empty permission arrays deny access. Workers reload source
-configuration and host permissions before writing and after acquiring the lock.
-
-## Tests
-
-Portable read/provider tests, from this package directory:
+Source instance is provenance/access scope; no URL or token is configured here.
+Scopes must be explicit. Source instance names do not select an upstream client.
+The core role registry supplies view/project rights. Import execution continues
+to use MSR ETL's existing right 953002; retired Mapping sync right 954002 does not
+start imports. Role grants are not transferred or broadened automatically.
 
 ```bash
-python -m mapping.tests.run_unit
+python manage.py configure_coremis_mapping --district-uuid COREMIS_DISTRICT_UUID --source-instance msr-malawi
+python manage.py configure_coremis_mapping --district-uuid COREMIS_DISTRICT_UUID --source-instance msr-malawi --apply
 ```
 
-CoreMIS host regression tests, from the assembly's manage.py directory:
+## Development and verification
+
+Install the package in editable mode using the selected nlgfc2024 assembly:
 
 ```bash
-python manage.py shell -c 'from mapping.tests.run_host import run; run()'
+python -m pip install --no-deps --no-build-isolation -e ../openimis-be-mapping_py
+python manage.py check
+python manage.py migrate
 ```
 
-The host runner requires PostgreSQL CREATE SCHEMA permission. It writes only to a
-disposable schema, then removes it. It covers ordering, real concurrent workers,
-rollback, configuration changes, revoked scope, scheduling and legacy imports.
+Portable tests: `python -m mapping.tests.run_unit`. The optional CoreMIS integration
+suite is `python manage.py shell -c 'from msr_etl.tests.run_geo_host import run; run()'`.
+It tests the combined importer/display deployment in disposable PostgreSQL tables.
+Mapping's portable suite runs without the MSR ETL package or CoreMIS adapter.
 
-## Compatibility boundary
-
-The repository and synchronization bridges import CoreMIS-specific models and
-legacy services lazily. Disabled startup does not require their construction.
-Only the selected nlgfc2024 CoreMIS host is the current compatibility target;
-standalone upstream openIMIS storage and a second host profile are not certified.
-
-Existing location reference/membership tables and reviewed MicroCatchment links
-remain authoritative. Both synchronization entry points share the same writer.
-Old staged geographic units without a coordination receipt require restaging.
-A village belongs to one catchment; no polygon-based membership is inferred.
-
-See [baseline](docs/BASELINE.md), [delivery chunks](docs/IMPLEMENTATION.md) and
-[synchronization API](docs/SYNCHRONIZATION.md).
-
-## CoreMIS frontend bridge activation
-
-Preview/apply one district's bridge settings with the existing configuration model:
-
-```bash
-python manage.py configure_coremis_mapping --source-instance msr-malawi --district-id 13
-python manage.py configure_coremis_mapping --source-instance msr-malawi --district-id 13 --apply
-python manage.py configure_coremis_mapping --disable --apply
-```
-
-The command reuses the MSR ETL source alias, configures explicit source/district
-scope, aligns safe frontend capability IDs, replaces the legacy entry in the
-existing Dashboards allowlist and preserves other entries. It grants no roles.
-It requires active reviewed CoreMIS links for the selected districts. The default
-is preview only. Restart backend/workers and reload the browser session after
-applying. Ordinary role grants remain in core Roles Management.
+See [ownership handover](docs/MSR_IMPORT_OWNERSHIP.md) for migration, pilot evidence,
+rollback requirements and remaining work. Historical chunk documents describe the
+implementation at their recorded dates and may reference retired APIs.

@@ -1,5 +1,7 @@
 # Mapping module delivery chunks
 
+> Current ownership follows [MSR import ownership](MSR_IMPORT_OWNERSHIP.md): MSR ETL owns imports; Mapping is a local geographic reader. Earlier chunks are historical implementation records.
+
 Specification inputs: CoreMIS Mapping Module Development Specification (6-page
 PDF) and CoreMIS/openIMIS Mapping Module Implementation Guide supplied by the
 project owner. Treat their package/API/acceptance definitions as the target.
