@@ -89,11 +89,21 @@ separate acceptance step; automated component fixtures are not that confirmation
 - Host UI component fixtures passed, including point-only display, keyboard
   selection, host date formatting, layer hiding and refresh removal.
 - Mapping package build and standalone JavaScript undefined-variable checks passed.
-- A fresh Django system check could not connect to PostgreSQL at
-  `127.0.0.1:5432` (server closed the connection). The chained migration check,
-  PostgreSQL integration suite and a new live pilot audit remain pending until
-  database connectivity is restored. This does not change the earlier pilot audit
-  above; it must not be reported as a fresh database verification.
+- Full CoreMIS frontend production build passed (the host ESLint plugin remains
+  disabled; standalone undefined-variable checks passed separately).
+- After PostgreSQL connectivity was restored, Django system checks passed with
+  no issues, `makemigrations mapping --check --dry-run` detected no changes and
+  `migrate --check` confirmed no pending migrations.
+- All 102 PostgreSQL integration tests passed using disposable test tables.
+- A fresh read-only pilot audit through Mapping GraphQL confirmed Dedza and
+  MTANTHO remain matched with available accepted boundaries (revisions 2 and 1).
+  MTANTHO still links to CoreMIS micro-catchment 3, with exactly 66 verified village
+  memberships and identical village ID sets in the legacy and generic stores.
+  Its source identity occurs once. Upstream HTTP was blocked during these reads;
+  no upstream requests occurred.
+- Usable point counts remain **0 of 3,560** district geographic records and
+  **0 of 67** MTANTHO records (the catchment plus its 66 verified villages).
+  Live point-marker verification still requires legitimate imported coordinates.
 
 No database migration is introduced in this chunk. Restart the backend and reload
 the frontend together because the new frontend requests additive GraphQL fields.
