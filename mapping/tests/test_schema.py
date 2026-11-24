@@ -54,6 +54,30 @@ class MappingSchemaTests(SimpleTestCase):
             self.assertTrue(self.query("{mappingReferences("+args+"){totalCount}}").errors)
         self.repo.list_references.assert_not_called()
 
+    def test_point_page_is_scoped_to_visible_area_and_bounded(self):
+        area=SimpleNamespace(pk=10,kind='micro_catchment')
+        self.repo.get_reference.return_value=area
+        self.repo.points.return_value=([SimpleNamespace(id=11,latitude=-14.0,longitude=33.0)],1,67)
+        result=self.query('{mappingPoints(areaReferenceId:"geo:10",offset:25,limit:25){totalCount scopedCount items{latitude longitude}}}')
+        self.assertFalse(result.errors)
+        self.assertEqual(result.data['mappingPoints'],{'totalCount':1,'scopedCount':67,'items':[{'latitude':-14.0,'longitude':33.0}]})
+        self.repo.points.assert_called_once_with(self.user,area,25,25)
+        self.repo.points.reset_mock()
+        self.assertTrue(self.query('{mappingPoints(areaReferenceId:"geo:10",limit:201){totalCount}}').errors)
+        self.repo.points.assert_not_called()
+
+    def test_hidden_or_wrong_kind_area_cannot_expose_point_counts(self):
+        for area in (None,SimpleNamespace(kind='village')):
+            self.repo.get_reference.return_value=area
+            self.assertTrue(self.query('{mappingPoints(areaReferenceId:"geo:10"){totalCount scopedCount}}').errors)
+        self.repo.points.assert_not_called()
+
+    def test_point_query_checks_view_permission_first(self):
+        self.user.has_perms.return_value=False
+        self.assertTrue(self.query('{mappingPoints(areaReferenceId:"geo:10"){totalCount}}').errors)
+        self.repo.get_reference.assert_not_called()
+        self.repo.points.assert_not_called()
+
     def test_existing_district_picker_uuid_is_forwarded(self):
         self.repo.list_references.return_value = ([], 0)
         result = self.query('{mappingReferences(districtUuid:"reviewed-local-district"){totalCount}}')

@@ -21,6 +21,8 @@ class MappingReference(graphene.ObjectType):
     kind = graphene.String()
     district_uuid = graphene.String()
     refresh_status = graphene.String()
+    geometry_revision = graphene.String()
+    geometry_updated_at = graphene.DateTime()
 
     def resolve_district_uuid(self, info):
         district = getattr(self, "district", None)
@@ -93,9 +95,31 @@ class MappingGeometry(graphene.ObjectType):
     source = graphene.String()
     geojson = GenericScalar()
     refresh_status = graphene.String()
+    accepted_at = graphene.DateTime()
+    imported_at = graphene.DateTime()
+    observed_revision = graphene.String()
+
+
+class MappingPointPage(graphene.ObjectType):
+    items = graphene.List(MappingReference)
+    total_count = graphene.Int()
+    scoped_count = graphene.Int()
 
 
 class Query(graphene.ObjectType):
+    mapping_points = graphene.Field(MappingPointPage, area_reference_id=graphene.ID(required=True),
+        offset=graphene.Int(default_value=0), limit=graphene.Int(default_value=50))
+
+    def resolve_mapping_points(self, info, area_reference_id, offset=0, limit=50):
+        authorize(info.context.user)
+        page_limits(offset, limit)
+        repository = get_repository()
+        area = visible_reference(repository, info.context.user, area_reference_id)
+        if area.kind not in ('district', 'micro_catchment'):
+            raise ValidationError('MAPPING_INVALID_POINT_SCOPE')
+        rows, total, scoped = repository.points(info.context.user, area, offset, limit)
+        return MappingPointPage(items=rows, total_count=total, scoped_count=scoped)
+
     mapping_areas = graphene.Field(MappingReferencePage, kind=graphene.String(), source_instance=graphene.String(),
         district_uuid=graphene.String(), micro_catchment_uuid=graphene.String(), offset=graphene.Int(default_value=0), limit=graphene.Int(default_value=100))
 

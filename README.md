@@ -84,3 +84,27 @@ Mapping's portable suite runs without the MSR ETL package or CoreMIS adapter.
 See [ownership handover](docs/MSR_IMPORT_OWNERSHIP.md) for migration, pilot evidence,
 rollback requirements and remaining work. Historical chunk documents describe the
 implementation at their recorded dates and may reference retired APIs.
+
+## Geographic point layers and freshness
+
+`mappingPoints(areaReferenceId, offset, limit)` returns paginated geographic
+reference coordinates from the same authorized local store. The parent must be
+a visible district or micro-catchment. District scope uses its source and local
+district; micro-catchment scope includes the area itself and stored verified
+memberships. Polygon containment and manually selected GVHs never determine point
+membership. This feed does not query household/beneficiary programme records.
+
+`totalCount` counts usable points; `scopedCount` counts authorized records before
+coordinate validation. A micro-catchment with 66 verified villages therefore has
+67 scoped records, including the micro-catchment itself. Coordinates must be a
+finite latitude/longitude pair within WGS84 bounds. Explicit missing, unavailable,
+invalid, withheld, removed or withdrawn point statuses are excluded. A numeric
+pair with unspecified quality is labelled as such; its accuracy is not inferred.
+
+`mappingGeometryAccess` additionally exposes `observedRevision`, `importedAt` and
+`acceptedAt` from the same local record as the geometry. The frontend distinguishes
+last accepted geometry from a newer imported publication or a failed replacement.
+Reference metadata also exposes `geometryRevision` and `geometryUpdatedAt`.
+These are CoreMIS import/acceptance times, not a claim about current upstream data.
+
+See [point and freshness validation](docs/POINT_LAYERS_AND_FRESHNESS.md).

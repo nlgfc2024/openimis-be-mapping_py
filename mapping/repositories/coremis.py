@@ -1,5 +1,6 @@
 """Read-only adapter for CoreMIS geography. No upstream API or importer imports."""
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, Q, Value
+from django.db.models.functions import Coalesce, Lower, Trim
 from mapping.apps import MappingConfig
 
 
@@ -39,7 +40,7 @@ class CoremisRepository:
             qs = qs.filter(source_instance=parent.source_instance,
                 parent_keys__contains=[{'type': parent.external_type, 'id': parent.external_id}])
         total = qs.count()
-        return list(qs.select_related('micro_catchment','district').order_by('source_instance','kind','external_id')[offset:offset+limit]), total
+        return list(qs.defer('geometry').select_related('micro_catchment','district').order_by('source_instance','kind','external_id')[offset:offset+limit]), total
 
     def get_reference(self, user, reference_id):
         qs = self.references(user).select_related('micro_catchment','district')
@@ -59,4 +60,24 @@ class CoremisRepository:
 
     def geometry(self, user, reference):
         from location.geography import local_geometry
-        return local_geometry(reference)
+        return {**local_geometry(reference), 'accepted_at':reference.geometry_updated_at,
+                'imported_at':reference.synced_at, 'observed_revision':str(reference.observed_revision)}
+
+    def points(self, user, area, offset, limit):
+        """Geographic reference coordinates; no person/programme/GPS feed.
+
+        Micro-catchment scope uses stored verified relationships, never polygon
+        containment or manually assigned GVHs. All counts remain access-scoped.
+        """
+        from location.models import GeographicMembership
+        qs = self.references(user).filter(source_instance=area.source_instance, district_id=area.district_id)
+        if area.kind == 'micro_catchment':
+            links = GeographicMembership.objects.filter(parent=area, child_id=OuterRef('pk'))
+            qs = qs.annotate(_covered=Exists(links)).filter(Q(pk=area.pk) | Q(_covered=True))
+        scoped = qs.count()
+        qs = qs.filter(latitude__gte=-90,latitude__lte=90,longitude__gte=-180,longitude__lte=180)
+        qs = qs.annotate(_coordinate_status=Lower(Trim(Coalesce('point_status',Value(''))))).exclude(
+            _coordinate_status__in=['unavailable','invalid','removed','withdrawn','withheld','missing'])
+        total = qs.count()
+        rows = list(qs.defer('geometry').select_related('district','micro_catchment').order_by('kind','name','external_id','pk')[offset:offset+limit])
+        return rows, total, scoped

@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="openimis-be-mapping",
-    version="0.3.0",
+    version="0.4.0",
     description="Configurable mapping APIs and host integrations for openIMIS and CoreMIS",
     packages=find_packages(),
     python_requires=">=3.10",
