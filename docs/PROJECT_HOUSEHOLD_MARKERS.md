@@ -118,9 +118,10 @@ target capacity and exclusive-enrolment rules; no Mapping code changes those rul
 - All ten selected pilot households are visible under the actual configured
   actor's existing household scope; no extra location or GPS role grants were made.
 
-Live display of the ten requested project household markers remains dependent on
-programme approval and project enrolment. Automated fixtures do not establish that
-live pilot milestone or replace an operator's browser confirmation.
+At the initial check, live display of the ten requested project household markers
+was still dependent on programme approval and project enrolment. The subsequent
+operator confirmation and live verification are recorded below; automated fixtures
+alone did not establish that milestone.
 
 ### Approval routing correction
 
@@ -142,3 +143,28 @@ After reloading the frontend, use Tasks Management → All tasks, filter by Task
 Group `001` and status ACCEPTED, open the eye icon and use the check-mark button
 to approve. `Entity: None` is normal for these create requests: the programme
 beneficiary entity does not exist until approval.
+
+### Live pilot verification after operator enrolment
+
+The operator subsequently enrolled the households and supplied project-map
+screenshots showing the household layer and “10 of 10 enrolled households have
+usable stored GPS.” A fresh read-only backend check confirmed:
+
+- 10 active project group-beneficiary enrolments;
+- 10 authorised household records with usable GPS and 10 distinct household IDs;
+- exactly one distinct stored coordinate pair across those ten households;
+- the project/MTANTHO match remains intact, with 66 verified village memberships.
+
+All ten household symbols therefore occupy the same map position. The single
+visible circle is overplotting of ten records, not evidence of a lost enrolment
+or a one-record query limit. Geographic reference points remain independently
+unavailable (0 of 67); household GPS does not supply village coordinates.
+
+The boundary-plus-enrolled-household display is now demonstrated by the operator
+screenshots and backend counts. Individual household locations cannot be visually
+distinguished with the current symbols when their source coordinates are equal.
+A count badge and a household chooser would make coincident records inspectable;
+changing or spreading the actual coordinates would misrepresent the stored data.
+The common coordinate itself does not establish why MSR households share a position
+or prove surveyed household accuracy; that remains a source-data review if distinct
+household positions were expected.
