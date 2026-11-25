@@ -121,3 +121,24 @@ target capacity and exclusive-enrolment rules; no Mapping code changes those rul
 Live display of the ten requested project household markers remains dependent on
 programme approval and project enrolment. Automated fixtures do not establish that
 live pilot milestone or replace an operator's browser confirmation.
+
+### Approval routing correction
+
+The initial ten requests were visible in All tasks but had no executor group;
+their RECEIVED status disabled the existing approval buttons. The Social
+Protection frontend also omitted the `GroupBeneficiaryService` task contribution.
+That source and its household/programme/status preview are now registered in the
+local Social Protection frontend repository, based on the assembly's installed
+commit to preserve its existing integration.
+
+The existing beneficiary approval group `001` now includes this source, preserving
+its ALL policy and existing executors. The ten requests were assigned to that group
+using the normal task service and are ACCEPTED (assigned and ready for review),
+not approved. The existing task query confirms all ten are visible to the reviewer;
+none is COMPLETED and no approval vote has been recorded by this change. Future
+requests use the host's existing automatic source-to-group routing.
+
+After reloading the frontend, use Tasks Management → All tasks, filter by Task
+Group `001` and status ACCEPTED, open the eye icon and use the check-mark button
+to approve. `Entity: None` is normal for these create requests: the programme
+beneficiary entity does not exist until approval.
