@@ -5,6 +5,10 @@ from mapping.apps import MappingConfig
 
 
 class CoremisRepository:
+    def project_households(self, user, project_id, offset, limit):
+        from mapping.repositories.project_households import household_page
+        return household_page(user, project_id, offset, limit)
+
     def references(self, user):
         from location.models import GeographicFeature, allowed_micro_catchment_district_ids
         qs = GeographicFeature.objects.filter(district__uuid__in=MappingConfig.permitted_district_uuids,

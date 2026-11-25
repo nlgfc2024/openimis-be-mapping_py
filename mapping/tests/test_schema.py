@@ -30,6 +30,31 @@ class MappingSchemaTests(SimpleTestCase):
         self.assertTrue(result.errors)
         self.repo.list_references.assert_not_called()
 
+    def test_project_households_require_all_capabilities_and_overlay_before_counts(self):
+        query='{mappingProjectHouseholds(projectId:"11111111-1111-4111-8111-111111111111"){totalCount}}'
+        with patch.multiple(MappingConfig,project_perms=['project'],gps_perms=['gps'],project_overlay_enabled=True):
+            for denied in ('test.mapping.view','project','gps'):
+                self.user.has_perms.side_effect=lambda rights: denied not in rights
+                self.assertTrue(self.query(query).errors)
+                self.repo.project_households.assert_not_called()
+            self.user.has_perms.side_effect=None
+            self.user.has_perms.return_value=True
+            self.repo.project_households.return_value=([],0,0)
+            self.assertFalse(self.query(query).errors)
+            self.repo.project_households.reset_mock()
+            MappingConfig.project_overlay_enabled=False
+            self.assertTrue(self.query(query).errors)
+            self.repo.project_households.assert_not_called()
+
+    def test_project_household_page_validation_and_minimal_payload(self):
+        with patch.multiple(MappingConfig,project_perms=['project'],gps_perms=['gps'],project_overlay_enabled=True):
+            self.repo.project_households.return_value=([{'id':'household:1','latitude':-14,'longitude':33,'kind':'household'}],1,2)
+            result=self.query('{mappingProjectHouseholds(projectId:"11111111-1111-4111-8111-111111111111",limit:25){totalCount scopedCount items{id latitude longitude kind}}}')
+            self.assertFalse(result.errors)
+            self.assertEqual(result.data['mappingProjectHouseholds']['scopedCount'],2)
+            for argument in ('offset:-1','limit:201','limit:0'):
+                self.assertTrue(self.query('{mappingProjectHouseholds(projectId:"11111111-1111-4111-8111-111111111111",'+argument+'){totalCount}}').errors)
+
     def test_unallocated_capability_fails_closed(self):
         MappingConfig.view_perms = []
         self.assertTrue(self.query("{mappingReferences{totalCount}}").errors)

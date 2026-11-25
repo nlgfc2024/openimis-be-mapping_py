@@ -13,6 +13,9 @@ class Command(BaseCommand):
         parser.add_argument('--source-instance', action='append')
         parser.add_argument('--disable', action='store_true')
         parser.add_argument('--apply', action='store_true')
+        overlay = parser.add_mutually_exclusive_group()
+        overlay.add_argument('--enable-project-overlay', dest='project_overlay', action='store_const', const=True, default=None)
+        overlay.add_argument('--disable-project-overlay', dest='project_overlay', action='store_const', const=False)
 
     @transaction.atomic
     def handle(self, *args, **options):
@@ -26,6 +29,8 @@ class Command(BaseCommand):
             configs[module] = json.loads(row.config) if row else {}
         backend = {**DEFAULT_CONFIG, **configs['mapping']}
         enabled = not options['disable']
+        if options['project_overlay'] is not None:
+            backend['project_overlay_enabled'] = options['project_overlay']
         if options['district_uuid']:
             requested = set(options['district_uuid'])
             actual = set(map(str,Location.objects.filter(uuid__in=requested,type='R',validity_to__isnull=True).values_list('uuid',flat=True)))
@@ -40,7 +45,8 @@ class Command(BaseCommand):
             backend.pop(key,None)
         backend.update(enabled=enabled,repository='coremis')
         configs['mapping'] = backend
-        configs['fe-mapping'].update(enabled=enabled,viewRights=backend['view_perms'],projectRights=backend['project_perms'],menuContributionKey='openSearchReports.MainMenu')
+        configs['fe-mapping'].update(enabled=enabled,viewRights=backend['view_perms'],projectRights=backend['project_perms'],
+            gpsRights=backend['gps_perms'],projectOverlayEnabled=backend['project_overlay_enabled'],menuContributionKey='openSearchReports.MainMenu')
         for key in ('sources','syncRights'):
             configs['fe-mapping'].pop(key,None)
         configs['fe-location']['useMappingDashboard'] = enabled

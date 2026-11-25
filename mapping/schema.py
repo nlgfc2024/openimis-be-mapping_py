@@ -106,7 +106,41 @@ class MappingPointPage(graphene.ObjectType):
     scoped_count = graphene.Int()
 
 
+class MappingHouseholdPoint(graphene.ObjectType):
+    id = graphene.ID()
+    code = graphene.String()
+    name = graphene.String()
+    kind = graphene.String()
+    source_instance = graphene.String()
+    latitude = graphene.Float()
+    longitude = graphene.Float()
+    accuracy = graphene.Float()
+    elevation = graphene.Float()
+    synced_at = graphene.String()
+    point_status = graphene.String()
+
+
+class MappingHouseholdPage(graphene.ObjectType):
+    items = graphene.List(MappingHouseholdPoint)
+    total_count = graphene.Int()
+    scoped_count = graphene.Int()
+
+
 class Query(graphene.ObjectType):
+    mapping_project_households = graphene.Field(MappingHouseholdPage, project_id=graphene.UUID(required=True),
+        offset=graphene.Int(default_value=0), limit=graphene.Int(default_value=50))
+
+    def resolve_mapping_project_households(self, info, project_id, offset=0, limit=50):
+        from mapping.access import require_capability
+        authorize(info.context.user)
+        require_capability(info.context.user, 'project_perms')
+        require_capability(info.context.user, 'gps_perms')
+        if not MappingConfig.project_overlay_enabled:
+            raise PermissionDenied('MAPPING_PROJECT_OVERLAY_DISABLED')
+        page_limits(offset, limit)
+        rows, total, scoped = get_repository().project_households(info.context.user, project_id, offset, limit)
+        return MappingHouseholdPage(items=rows, total_count=total, scoped_count=scoped)
+
     mapping_points = graphene.Field(MappingPointPage, area_reference_id=graphene.ID(required=True),
         offset=graphene.Int(default_value=0), limit=graphene.Int(default_value=50))
 

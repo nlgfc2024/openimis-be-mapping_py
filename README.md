@@ -108,3 +108,9 @@ Reference metadata also exposes `geometryRevision` and `geometryUpdatedAt`.
 These are CoreMIS import/acceptance times, not a claim about current upstream data.
 
 See [point and freshness validation](docs/POINT_LAYERS_AND_FRESHNESS.md).
+## Project household GPS
+
+The optional CoreMIS adapter exposes a separately authorised project household
+point layer using existing programme enrolments and stored household GPS. See
+[Project household markers](docs/PROJECT_HOUSEHOLD_MARKERS.md) for access controls,
+configuration, tests and the pilot approval state.
