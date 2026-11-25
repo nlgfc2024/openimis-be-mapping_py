@@ -163,8 +163,13 @@ unavailable (0 of 67); household GPS does not supply village coordinates.
 The boundary-plus-enrolled-household display is now demonstrated by the operator
 screenshots and backend counts. Individual household locations cannot be visually
 distinguished with the current symbols when their source coordinates are equal.
-A count badge and a household chooser would make coincident records inspectable;
-changing or spreading the actual coordinates would misrepresent the stored data.
+The frontend now provides a count badge and a household chooser to make coincident
+records inspectable. Grouping uses exact stored coordinates on the current page;
+nearby coordinates and geographic reference markers are not merged. Clicking the
+badge or pressing Enter/Space opens the selector and the chosen household's own
+details. Removing a record or hiding the layer clears its details. Counts and text
+remain readable when zooming. This is a display change only; changing or spreading
+the actual coordinates would misrepresent the stored data.
 The common coordinate itself does not establish why MSR households share a position
 or prove surveyed household accuracy; that remains a source-data review if distinct
 household positions were expected.
