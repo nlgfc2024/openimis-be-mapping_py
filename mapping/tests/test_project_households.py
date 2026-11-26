@@ -121,3 +121,27 @@ class ProjectHouseholdTests(TestCase):
                 self.assertTrue(self.query().errors)
         with patch.object(MappingConfig,'permitted_district_uuids',[]):
             self.assertTrue(self.query().errors)
+
+    def test_catchment_projects_use_explicit_match_and_scope(self):
+        from location.models import MicroCatchment,GeographicFeature
+        micro=MicroCatchment(id=900001,code='fixture-micro',name='Fixture micro',district=self.district,audit_user_id=1)
+        MicroCatchment.objects.bulk_create([micro])
+        reference=GeographicFeature.objects.create(id=900001,source_instance='project-fixture',external_type='catchments',external_id='1',
+            kind='micro_catchment',code='FIXTURE',name='Fixture',district=self.district,micro_catchment=micro)
+        Project.objects.filter(pk=self.project.pk).update(micro_catchment=micro)
+        # A project in the same district without an explicit match is not inferred.
+        self.make(Project,name='Unlinked',benefit_plan=self.plan,activity=self.project.activity,
+            location=self.district,target_beneficiaries=20,working_days=30)
+        with patch.object(MappingConfig,'permitted_source_instances',['project-fixture']):
+            query='query($id:ID!){mappingCatchmentProjects(referenceId:$id){totalCount items{id name}}}'
+            def read():
+                return self.schema.execute(query,variable_values={'id':'geo:'+str(reference.pk)},context_value=self.context)
+            result=read()
+            self.assertFalse(result.errors,str(result.errors))
+            self.assertEqual(result.data['mappingCatchmentProjects']['totalCount'],1)
+            self.assertEqual(result.data['mappingCatchmentProjects']['items'][0]['id'],str(self.project.pk))
+            self.scope_mock.return_value=set()
+            self.assertTrue(read().errors)
+            self.scope_mock.return_value=None
+            GeographicFeature.objects.filter(pk=reference.pk).update(micro_catchment=None)
+            self.assertEqual(read().data['mappingCatchmentProjects']['totalCount'],0)

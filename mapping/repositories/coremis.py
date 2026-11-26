@@ -5,6 +5,10 @@ from mapping.apps import MappingConfig
 
 
 class CoremisRepository:
+    def catchment_projects(self, user, reference, offset, limit):
+        from mapping.repositories.project_households import catchment_projects
+        return catchment_projects(user, reference, offset, limit)
+
     def project_households(self, user, project_id, offset, limit):
         from mapping.repositories.project_households import household_page
         return household_page(user, project_id, offset, limit)

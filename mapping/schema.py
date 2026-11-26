@@ -126,7 +126,34 @@ class MappingHouseholdPage(graphene.ObjectType):
     scoped_count = graphene.Int()
 
 
+class MappingProject(graphene.ObjectType):
+    id = graphene.UUID()
+    code = graphene.String()
+    name = graphene.String()
+    status = graphene.String()
+
+
+class MappingProjectPage(graphene.ObjectType):
+    items = graphene.List(MappingProject)
+    total_count = graphene.Int()
+
+
 class Query(graphene.ObjectType):
+    mapping_catchment_projects = graphene.Field(MappingProjectPage, reference_id=graphene.ID(required=True),
+        offset=graphene.Int(default_value=0), limit=graphene.Int(default_value=50))
+
+    def resolve_mapping_catchment_projects(self, info, reference_id, offset=0, limit=50):
+        from mapping.access import require_capability
+        authorize(info.context.user)
+        require_capability(info.context.user, 'project_perms')
+        page_limits(offset, limit)
+        repository = get_repository()
+        reference = visible_reference(repository, info.context.user, reference_id)
+        if reference.kind != 'micro_catchment':
+            raise ValidationError('MAPPING_INVALID_CATCHMENT')
+        rows, total = repository.catchment_projects(info.context.user, reference, offset, limit)
+        return MappingProjectPage(items=rows, total_count=total)
+
     mapping_project_households = graphene.Field(MappingHouseholdPage, project_id=graphene.UUID(required=True),
         offset=graphene.Int(default_value=0), limit=graphene.Int(default_value=50))
 

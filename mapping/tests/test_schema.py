@@ -55,6 +55,26 @@ class MappingSchemaTests(SimpleTestCase):
             for argument in ('offset:-1','limit:201','limit:0'):
                 self.assertTrue(self.query('{mappingProjectHouseholds(projectId:"11111111-1111-4111-8111-111111111111",'+argument+'){totalCount}}').errors)
 
+    def test_catchment_projects_require_view_project_scope_and_correct_kind(self):
+        query='{mappingCatchmentProjects(referenceId:"geo:20",limit:25){totalCount items{name status}}}'
+        with patch.object(MappingConfig,'project_perms',['project']):
+            self.repo.get_reference.return_value=SimpleNamespace(kind='micro_catchment')
+            self.repo.catchment_projects.return_value=([{'name':'Authorised project','status':'PREPARATION'}],1)
+            result=self.query(query)
+            self.assertFalse(result.errors)
+            self.assertEqual(result.data['mappingCatchmentProjects']['totalCount'],1)
+            self.repo.catchment_projects.reset_mock()
+            self.user.has_perms.side_effect=lambda rights:'project' not in rights
+            self.assertTrue(self.query(query).errors)
+            self.repo.catchment_projects.assert_not_called()
+            self.user.has_perms.side_effect=None
+            self.repo.get_reference.return_value=None
+            self.assertTrue(self.query(query).errors)
+            self.repo.catchment_projects.assert_not_called()
+            self.repo.get_reference.return_value=SimpleNamespace(kind='village')
+            self.assertTrue(self.query(query).errors)
+            self.repo.catchment_projects.assert_not_called()
+
     def test_unallocated_capability_fails_closed(self):
         MappingConfig.view_perms = []
         self.assertTrue(self.query("{mappingReferences{totalCount}}").errors)

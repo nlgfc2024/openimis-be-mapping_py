@@ -114,3 +114,9 @@ The optional CoreMIS adapter exposes a separately authorised project household
 point layer using existing programme enrolments and stored household GPS. See
 [Project household markers](docs/PROJECT_HOUSEHOLD_MARKERS.md) for access controls,
 configuration, tests and the pilot approval state.
+## District catchment overview
+
+The shared map supports complete authorised district overviews and catchment
+drill-down, with explicit-match project exploration. See
+[District overview and drill-down](docs/DISTRICT_CATCHMENT_OVERVIEW.md) for the
+operator flow, access controls and verification results.

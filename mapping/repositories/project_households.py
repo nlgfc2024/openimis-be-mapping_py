@@ -35,6 +35,27 @@ def visible_project(user, project_id):
     return project, district
 
 
+def catchment_projects(user, reference, offset, limit):
+    from django.apps import apps
+    if not apps.is_installed('project_social_protection'):
+        raise ValidationError('MAPPING_PROJECT_ADAPTER_UNAVAILABLE')
+    from project_social_protection.apps import ProjectSocialProtectionConfig
+    from project_social_protection.models import Project
+    from location.models import extend_allowed_locations
+    host_permission(user, ProjectSocialProtectionConfig.gql_project_search_perms)
+    if (not reference.micro_catchment_id or reference.micro_catchment.validity_to is not None
+            or reference.micro_catchment.district_id != reference.district_id):
+        return [], 0
+    # A verified source identity and explicit CoreMIS match select the projects;
+    # polygon containment is never used to create or infer that relationship.
+    qs = Project.objects.filter(is_deleted=False, benefit_plan__is_deleted=False,
+        micro_catchment_id=reference.micro_catchment_id,
+        location_id__in=extend_allowed_locations([reference.district_id]),
+        location__validity_to__isnull=True)
+    total = qs.count()
+    return list(qs.order_by('name','pk').values('id','code','name','status')[offset:offset+limit]), total
+
+
 def household_page(user, project_id, offset, limit):
     project, district = visible_project(user, project_id)
     from individual.apps import IndividualConfig
